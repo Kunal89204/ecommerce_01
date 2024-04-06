@@ -15,102 +15,73 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST create new order
-router.post("/", async (req, res) => {
-    try {
-      const { orderPrice, customer, orderItems, address, status } = req.body;
-  
-      // Validate input data
-      if (!orderPrice || !customer || !orderItems || !address) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-  
-      // Check if customer exists
-      const existingCustomer = await User.findById(customer);
-      if (!existingCustomer) {
-        return res.status(404).json({ error: "Customer not found" });
-      }
-  
-      // Check if order items are valid products
-      for (const item of orderItems) {
-        const product = await Product.findById(item.productId);
-        if (!product) {
-          return res.status(404).json({ error: "Product not found" });
-        }
-      }
-  
-      // Create new order
-      const newOrder = await Order.create({ orderPrice, customer, orderItems, address, status });
-      res.status(201).json(newOrder);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-  
-// GET a specific order by ID
-router.get("/:id", async (req, res) => {
+// place orders
+router.post("/:id", async (req, res) => {
   try {
-    const orderId = req.params.id;
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+    const { orderPrice, customer, address, status, quantity } = req.body;
+    const productId = req.params.id;
+
+    // Validate input data
+    if (!orderPrice || !customer || !address || !status) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
-    res.json(order);
+
+    // Find the product by ID
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    // Find the customer by username
+    const customerUser = await User.findOne({ username: customer });
+    if (!customerUser) {
+      return res.status(404).json({ error: "Customer not found" });
+    }
+
+    // Construct the order item object
+    const orderItem = {
+      productId: product._id,
+      quantity, 
+    };
+
+    // Create the order and push the order item
+    const newOrder = await Order.create({
+      orderPrice,
+      customer: customerUser._id,
+      orderItems: [orderItem], // Add the order item to the orderItems array
+      address,
+      status,
+    });
+
+    res.status(201).json(newOrder);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// PUT update a specific order by ID
+
+
+// update order
 router.put("/:id", async (req, res) => {
   try {
-    const orderId = req.params.id;
-    const { orderPrice, customer, orderItems, address, status } = req.body;
-
-    // Check if order exists
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
-    }
-
-    // Update order fields
-    order.orderPrice = orderPrice;
-    order.customer = customer;
-    order.orderItems = orderItems;
-    order.address = address;
-    order.status = status;
-
-    // Save updated order
-    await order.save();
-
-    res.json(order);
+    const id = req.params.id
+    const updateOrder = await Order.findByIdAndUpdate(id, req.body)
+    res.json(updateOrder)
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    console.log(error)
   }
-});
-
-// DELETE a specific order by ID
+})
+// delete order
 router.delete("/:id", async (req, res) => {
   try {
-    const orderId = req.params.id;
-
-    // Check if order exists
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
-    }
-
-    // Delete order
-    await order.remove();
-
-    res.json({ message: "Order deleted successfully", order });
+    const id = req.params.id
+    const deleteOrder = await Order.findByIdAndDelete(id)
+    res.json(deleteOrder)
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    console.log(error)
   }
-});
+})
 
-module.exports = router;
+
+module.exports = router

@@ -7,7 +7,7 @@ const orderItemSchema = new mongoose.Schema({
   },
   quantity: {
     type: Number,
-    required: SVGComponentTransferFunctionElement,
+    required: true,
   },
 });
 
@@ -38,4 +38,6 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Order = mongoose.model("Order", orderSchema);
+// export const Order = mongoose.model("Order", orderSchema);
+
+module.exports = mongoose.model("Order", orderSchema)
