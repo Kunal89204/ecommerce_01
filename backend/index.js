@@ -12,13 +12,10 @@ connectDB();
 
 // Use your routes
 app.use("/users", userRoutes);
-
-// getting specific user's info
-app.use("/users/:id", userRoutes);
-
 app.use("/category", userCategory);
 app.use("/product", productRoutes);
 app.use("/order", orderRoutes);
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

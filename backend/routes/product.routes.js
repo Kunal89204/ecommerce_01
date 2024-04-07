@@ -3,6 +3,7 @@ const router = express.Router();
 const Product = require("../models/product.model");
 const Category = require("../models/category.model");
 const User = require("../models/user.model");
+const upload = require("../middlewares/multer")
 
 // GET all products
 router.get("/", async (req, res) => {
@@ -27,10 +28,11 @@ router.get("/:id", async (req, res) => {
 })
 
 // Uploading a new product
-router.post("/", async (req, res) => {
+router.post("/", upload.single("product") , async (req, res) => {
   try {
-    const { description, name, productImage, price, stock, category, owner } =
+    const { description, name, price, stock, category, owner } =
       req.body;
+      const filekanaam = req.file.filename;
 
     // Validate input data
     if (!description || !name || !price || !stock || !category || !owner) {
@@ -53,7 +55,7 @@ router.post("/", async (req, res) => {
     const product = await Product.create({
       description,
       name,
-      productImage,
+      productImage:filekanaam,
       price,
       stock,
       category: categoryObject._id,
